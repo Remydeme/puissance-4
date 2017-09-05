@@ -11,13 +11,15 @@ static struct player_s *players = NULL;
 int h = DEFAULT_H;
 int w = DEFAULT_W;
 
+static int insert_pos = 0;
+
+
 ///////////////////////////// player ////////////////////////////
 
 
-struct player_s * create_player(int nb_player)
+struct player_s * create_player()
 {
-    return nb_player >= 2 ? 
-        calloc (2, sizeof (struct player_s)) : calloc (nb_player, sizeof (struct player_s)) ;
+    return calloc (2, sizeof (struct player_s)); 
 }
 
 void config_player()
@@ -25,57 +27,74 @@ void config_player()
     for (int i = 0; i < 2; i++)
     {
         scanf ("%s", players[i].name);
-        players[i].tokens = h * w / 2;
+        players[i].tokens = MAX_SIZE / 2;
     }
 }
 
 
 
-int turn(int player, uc* grid)
+struct player_s* turn(int whom, uc* grid)
 {
     int column = 0;
     int played = 0;
     fprintf (stdout, "%s \n", PLAY_MSG);
     while (!played)
     {
-        if (!(player % 2))
+        if (!(whom % 2))
         {
             fprintf (stdout, "%s \n", players[0].name);
             scanf("%d", &column);
-            // get the '\n'
             getc(stdin);
-            if (!is_filled(grid, column))
+            if (check_column(column))
             {
-                insert (grid, column,  P1_JETON);
-                players[0].tokens--;
-                played = 1;
+                if (!is_filled(grid, column))
+                {
+                    insert_pos = insert (grid, column,  P1_JETON);
+                    players[0].tokens--;
+                    played = 1;
+                }
+                else
+                    fprintf (stderr, "err : %s \n", COLUMN_FILLED); 
             }
-            else
-                fprintf (stderr, "err : %s ", COLUMN_FILLED); 
+            else fprintf (stderr, "err: %s \n",  ERR_INPUT);
         }
         else
         {
             fprintf (stdout, "%s \n", players[1].name);
             scanf("%d", &column);
+            getc(stdin);
             // get the '\n'
-            if (!is_filled(grid, column))
+            if (check_column(column))
             {
-                insert (grid, column,  P2_JETON);
-                players[1].tokens--;
-                played = 1;
+                if (!is_filled(grid, column))
+                {
+                    insert_pos = insert (grid, column,  P2_JETON);
+                    players[1].tokens--;
+                    played = 1;
+                }
+                else
+                    fprintf (stderr, "err : %s", COLUMN_FILLED);
             }
-            else
-                fprintf (stderr, "err : %s", COLUMN_FILLED);
+            else fprintf (stderr, "err: %s",  ERR_INPUT);
         }
     }
-    return EXIT_SUCCESS; 
+    return &players[whom % 2]; 
 }
 
 
-////////////////////////////// tools ///////
+////////////////////////////// tools /////////////////////////////////
 
 // read function with the fgets here 
 
+void check_party_null(int whom, int *finished)
+{
+    if (whom == MAX_SIZE)
+    {
+        fprintf (stdout, "msg : %s \n", MATCH_NULL);
+        *finished = END;
+    }
+
+}
 
 void display(uc* grid)
 {
@@ -91,29 +110,138 @@ void display(uc* grid)
     }
 }
 
-//////////////////////////////////// grid //////////////////////////////
-
-int check_vertical(int pos, char *tab)
+int is_winner(uc* grid)
 {
-    char token = tab[pos];
-
-    if ((pos >= 0 && pos <= 42) && (compt < 6))
-    {
-        compt += Vertical(pos+7, tab) + Vertical(pos-7, tab) +1;
-    }
+    if (check_horizontal(insert_pos, grid) >= WIN_VAL)
+        return 1;
+    else if (check_vertical(insert_pos, grid) >= WIN_VAL)
+        return 1;
+    else if (check_rdiagonal(insert_pos, grid) >= WIN_VAL)
+        return 1;
+    else if (check_ldiagonal(insert_pos, grid) >= WIN_VAL)
+        return 1;
     else
-    {
-        if (compt >= 6)
-        {
-            fprintf (stderr, "err : %s \n", ERR_BAD_CHECK);
-            return EXIT_FAILURE;
-        }
-        return compt;
-    }
+        return 0;
 }
 
-/*
 
+int check_column(int column)
+{
+    return column >= 0 && w > column ? 1 : 0;
+}
+
+
+int check_horizontal(int pos, uc* grid)
+{
+    int cursor = pos;
+    uc token = grid[pos];
+    int counter = 1;
+    /*start by checking the right side*/
+    while (cursor < MAX_SIZE)
+    {
+        cursor += w;
+        if (grid[cursor] == token)
+            counter++;
+        else
+            break;
+    }
+    /* check the left side */
+    cursor = pos;
+    while (cursor > 0)
+    {
+        cursor -= w;
+        if (grid[cursor] == token)
+            counter++;
+        else
+            break;
+    }
+    return counter;
+}
+
+int check_vertical(int pos, uc* grid)
+{
+    int cursor = pos;
+    uc token = grid[pos];
+    int counter = 1;
+    /*start by checking the right side*/
+    while (cursor < MAX_SIZE)
+    {
+        cursor += ONE;
+        if (grid[cursor] == token)
+            counter++;
+        else
+            break;
+    }
+    /* check the left side */
+    cursor = pos;
+    while (cursor > 0)
+    {
+        cursor -= ONE;
+        if (grid[cursor] == token)
+            counter++;
+        else
+            break;
+    }
+    return counter;
+}
+
+int check_rdiagonal(int pos, uc* grid)
+{
+    int cursor = pos;
+    uc token = grid[pos];
+    int counter = ONE;
+    /*start by checking the right side*/
+    while (cursor < MAX_SIZE)
+    {
+        cursor += (w + 1);
+        if (grid[cursor] == token)
+            counter++;
+        else
+            break;
+    }
+    /* check the left side */
+    cursor = pos;
+    while (cursor > 0)
+    {
+        cursor -= (w + 1);
+        if (grid[cursor] == token)
+            counter++;
+        else
+            break;
+    }
+    return counter;
+}
+
+int check_ldiagonal(int pos, uc* grid)
+{
+    int cursor = pos;
+    uc token = grid[pos];
+    int counter = 1;
+    /*start by checking the right side*/
+    while (cursor < MAX_SIZE)
+    {
+        cursor += (w - 1);
+        if (grid[cursor] == token)
+            counter++;
+        else
+            break;
+    }
+    /* check the left side */
+    cursor = pos;
+    while (cursor > 0)
+    {
+        cursor -= (w - 1);
+        if (grid[cursor] == token)
+            counter++;
+        else
+            break;
+    }
+    return counter;
+}
+//////////////////////////////////// grid //////////////////////////////
+
+
+/*
    | 0 | 1 | 2 | 3 | 4 | 5 | 6 |
    _ ___________________________
    | 0 | 1 | 2 | 3 | 4 | 5 | 6 |
@@ -127,6 +255,8 @@ int check_vertical(int pos, char *tab)
    _ ____________________________ 
  */
 
+
+
 int is_empty(uc case_value)
 {
     return case_value == ' ';
@@ -135,7 +265,7 @@ int is_empty(uc case_value)
 int insert(uc* grid, int column, uc token)
 {
     int position = column - 1;
-    for (int i = 0 ; (i < h && position < h * w) ; i++)
+    for (int i = 0 ; (i < h && position < MAX_SIZE) ; i++)
     {
         if (is_empty(grid[position]))
         {
@@ -150,8 +280,8 @@ int insert(uc* grid, int column, uc token)
 
 uc* create_tab(int w, int h)
 {
-    uc* tmp =  calloc (w * h, sizeof (uint8_t));
-    for (int i = 0; i < w * h; i++)
+    uc* tmp =  calloc (MAX_SIZE, sizeof (uint8_t));
+    for (int i = 0; i < MAX_SIZE; i++)
         tmp[i] = ' ';
     return tmp;
 }
@@ -167,26 +297,33 @@ int is_filled(uc* grid, int column)
 /////////////////// GAME ///////////////////////////
 
 
-int p4_game()
+uc* p4_game()
 {
-    int finished = 0;
-    int player = 0;
-    players = create_player(2);
-    uc * grid = create_tab(w, h);
+    players = create_player();
+    int finished = START;
+    int whom = 0;
+    struct player_s* player = NULL;
+    uc* grid = create_tab(w, h);
     if (grid)
     {
         while (!finished)
         {
             display(grid);
-            turn(player, grid);
-            player++;
-            if (player == 42)
-                fprintf (stdout, "msg : %s ", MATCH_NULL);
+            player = turn(whom, grid);
+            if (is_winner(grid))
+            {
+                finished = END;
+                player->score++;
+                display(grid);
+                break;
+            }
+            whom++;
+            check_party_null(whom, &finished);
             system("clear");
         }
     }
     else
-        fprintf(stderr, "mssg : %s ", ALLOCATION_ERROR);
-    return 1;
+        fprintf(stderr, "mssg : %s \n", ALLOCATION_ERROR);
+    return grid;
 }
 
