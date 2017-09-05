@@ -1,9 +1,26 @@
+/**
+* \file p4.h
+* \auhtor Remy.deme
+*/
 #pragma once
 
 #define VRAI 1
 #define FAUX 0
 
+// MAIN FUNCION 
+
+// menu 
+
+#define VS_1 1
+#define VS_IA 2
+#define RULES 3
+
 // GAME 
+
+#define IA_NAME "JARVIS"
+
+#define SAVED_FILE "game_saved.txt"
+#define NB_PLAYER_MAX 2
 
 #define ONE 1
 #define EIGHT 8
@@ -45,7 +62,10 @@
 
 #define MATCH_NULL "match Null !!"
 
+/* \brief alias */
+typedef unsigned char uc;
 
+/*! \struct player_s*/
 struct player_s
 {
    char name[250];
@@ -55,57 +75,80 @@ struct player_s
 };
 
 
-typedef unsigned char uc;
+struct game_s
+{
+    int h; 
+    int w;
+    int insert_pos;
+    uc* grid;
+    struct player_s* players;
+};
 
 
-/*! \brief display the code */
+/**   \brief display the code */
 
-void display(uc* grid);
+/** \fn */void display(uc* grid);
 
-/*! \brief check if the game is NULL (egalite)*/
+/** \brief check if the game is NULL (egalite)*/
 void check_party_null(int whom, int *finished);
 
-/* \brief main function P4_GAME used to launch the game */
+/** \brief main function P4_GAME used to launch the game */
 
 uc* p4_game();
 
+/** \brief set the structure sigaction to handle the  sigint signal 
+ *in order to save file  
+ */
 
-/*! \brief return one if there is a winner else 0 */
+void handle_signal();
 
-int is_winner(uc* grid);
+/** \brief function to save the game */
 
-/*! \brief insertion function */
+void save_game(int signum);
 
-int insert(uc* grid, int column, uc token);
+/* \brief config player */
 
-/*! \brief check the validity of the column  */
+void config_player(int choice);
+
+/** \brief return one if there is a winner else 0 */
+
+int is_winner();
+
+/** \brief insertion function */
+
+int insert(int column, uc token);
+
+/** \brief check the validity of the column  */
 
 int check_column(int column);
 
-/*! \brief alloc the memory for new player */
+/** \brief alloc the memory for new player */
 
 struct player_s* create_player();
 
-/*! \brief  play the game => select the player */
+/** \brief  play the game => select the player */
 
-struct player_s* turn (int whom, uc* grid);
+struct player_s* turn (int whom);
 
-/*! \brief create tab*/
+/**
+* \fn uc * create_tab(int w, int h)
+* \brief create tab
+*/
 
 uc* create_tab(int w, int h);
 
-/*! \brief  check if the case is empty  ' '*/
+/** \brief  check if the case is empty  ' '*/
 
 int is_empty(uc value);
 
-/*! \brief turn select the player and call thge insert function */
+/** \brief turn select the player and call thge insert function */
 
-/*! \brief check if a column is not filled of token */
+/** \brief check if a column is not filled of token */
 
-int is_filled(uc* grid, int column);
+int is_filled(int column);
 
 
-/* check horizontaly if the token that have been put finished the game */
+/** check horizontaly if the token that have been put finished the game */
 int check_horizontal(int pos, uc* grid);
 
 /* check verticaly if the token that have been put finished the game */

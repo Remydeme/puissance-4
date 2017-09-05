@@ -1,55 +1,119 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <sys/types.h>
+#include <string.h>
 #include <limits.h>
-
+#include <signal.h>
 #include "p4.h"
 
 
-static struct player_s *players = NULL;
+/////// GLOBAL VAR 
+
+struct player_s *players = NULL;
 
 int h = DEFAULT_H;
 int w = DEFAULT_W;
-
+struct sigaction new_action, old_action;
 static int insert_pos = 0;
+
+uc* grid = NULL;
 
 
 ///////////////////////////// player ////////////////////////////
 
+void handle_signal()
+{
+     new_action.sa_handler = save_game;
+    sigemptyset (&new_action.sa_mask);
+    new_action.sa_flags = 0;
+
+    sigaction (SIGINT, NULL, &old_action);
+    if (old_action.sa_handler != SIG_IGN)
+        sigaction (SIGINT, &new_action, NULL);
+    sigaction (SIGHUP, NULL, &old_action);
+    if (old_action.sa_handler != SIG_IGN)
+        sigaction (SIGHUP, &new_action, NULL);
+}
+
+void save_game(int signum)
+{
+    if (SIGINT == signum)
+            printf ("RECEIVED SIGINT SIGNAL ! SAVING ..." );
+    fflush(stdout);
+    FILE* file = fopen(SAVED_FILE, "w+");
+    if (file && grid && players)
+    {
+        for (int i = 0; i < NB_PLAYER_MAX; i++)
+           {
+               fprintf (file, "%s %d %d \n", players[i].name, players[i].tokens, 
+               players[i].score);
+           }
+
+        for (int i = 0; i < h * w; i++)
+            fputc(grid[i], file);
+        free (grid);
+        free (players);
+    }
+    else
+    {
+        if (!grid)
+            fprintf (stderr, "err : %s ", "empty grid don't need to save");
+        else
+            free(grid);
+        if (!players)
+            fprintf (stderr, "err : %s" , "no players info don't need to save the party");
+        else
+            free(grid);
+         if (!file)
+            fprintf (stderr,"err : %s", "err : Error while opening file ");
+    }
+    exit(EXIT_SUCCESS);
+}
 
 struct player_s * create_player()
 {
     return calloc (2, sizeof (struct player_s)); 
 }
 
-void config_player()
+void config_player(int choice)
 {
-    for (int i = 0; i < 2; i++)
+    if (choice == 1)
     {
-        scanf ("%s", players[i].name);
-        players[i].tokens = MAX_SIZE / 2;
+        for (int i = 0; i < 2; i++)
+        {
+            printf ("Enter the name of the player %d : ", i + 1);
+            scanf ("%s", players[i].name);
+            players[i].tokens = MAX_SIZE / 2;
+            printf ("\n");
+        }
     }
+    else if (choice == 2)
+       {
+           puts ("Enter the name of the player : ");
+           scanf ("%s", players[0].name);
+           memmove (players[1].name, IA_NAME, sizeof (IA_NAME));
+       }
 }
 
 
 
-struct player_s* turn(int whom, uc* grid)
+struct player_s* turn(int whom)
 {
     int column = 0;
     int played = 0;
-    fprintf (stdout, "%s \n", PLAY_MSG);
     while (!played)
     {
         if (!(whom % 2))
         {
-            fprintf (stdout, "%s \n", players[0].name);
+            fprintf (stdout, "\n It's your turn %s \n\n %s \n", 
+             players[0].name, PLAY_MSG);
             scanf("%d", &column);
             getc(stdin);
             if (check_column(column))
             {
-                if (!is_filled(grid, column))
+                if (!is_filled(column))
                 {
-                    insert_pos = insert (grid, column,  P1_JETON);
+                    insert_pos = insert (column,  P1_JETON);
                     players[0].tokens--;
                     played = 1;
                 }
@@ -60,15 +124,16 @@ struct player_s* turn(int whom, uc* grid)
         }
         else
         {
-            fprintf (stdout, "%s \n", players[1].name);
+            fprintf (stdout, "\n It's your turn %s \n\n %s \n", 
+            players[1].name, PLAY_MSG);
             scanf("%d", &column);
             getc(stdin);
             // get the '\n'
             if (check_column(column))
             {
-                if (!is_filled(grid, column))
+                if (!is_filled(column))
                 {
-                    insert_pos = insert (grid, column,  P2_JETON);
+                    insert_pos = insert (column,  P2_JETON);
                     players[1].tokens--;
                     played = 1;
                 }
@@ -110,7 +175,7 @@ void display(uc* grid)
     }
 }
 
-int is_winner(uc* grid)
+int is_winner()
 {
     if (check_horizontal(insert_pos, grid) >= WIN_VAL)
         return 1;
@@ -123,6 +188,8 @@ int is_winner(uc* grid)
     else
         return 0;
 }
+
+
 
 
 int check_column(int column)
@@ -238,6 +305,7 @@ int check_ldiagonal(int pos, uc* grid)
     }
     return counter;
 }
+
 //////////////////////////////////// grid //////////////////////////////
 
 
@@ -262,7 +330,7 @@ int is_empty(uc case_value)
     return case_value == ' ';
 }
 
-int insert(uc* grid, int column, uc token)
+int insert(int column, uc token)
 {
     int position = column - 1;
     for (int i = 0 ; (i < h && position < MAX_SIZE) ; i++)
@@ -287,7 +355,7 @@ uc* create_tab(int w, int h)
 }
 
 
-int is_filled(uc* grid, int column)
+int is_filled(int column)
 {
     return grid[(h - 1) * w  +  column - 1] != ' ';
 }
@@ -299,18 +367,17 @@ int is_filled(uc* grid, int column)
 
 uc* p4_game()
 {
-    players = create_player();
     int finished = START;
     int whom = 0;
     struct player_s* player = NULL;
-    uc* grid = create_tab(w, h);
+    grid = create_tab(w, h);
     if (grid)
     {
         while (!finished)
         {
             display(grid);
-            player = turn(whom, grid);
-            if (is_winner(grid))
+            player = turn(whom);
+            if (is_winner())
             {
                 finished = END;
                 player->score++;
