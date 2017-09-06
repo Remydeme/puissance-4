@@ -22,6 +22,7 @@ int main()
 
         puts ("What do you want to do ? \n\n");
         scanf ("%d", &choice);
+        system("clear");
         getc(stdin);// to remove the '\n'
 
         switch (choice)
@@ -33,8 +34,7 @@ int main()
 
             case VS_IA:
                 config_player(VS_IA);
-                printf ("SOONER %s \n", players[0].name);
-                system( "./p4.sh");
+                IA_mode_p4_game();
                 break;
 
             case RULES:
@@ -49,7 +49,5 @@ int main()
                 break;
                 return 0;
         }
-        system ("clear");
-
     } while (choice != 4);
 }

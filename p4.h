@@ -7,19 +7,20 @@
 #define VRAI 1
 #define FAUX 0
 
-// MAIN FUNCION 
+///////////////// MAIN FUNCION 
 
-// menu 
+//////////////// menu 
 
 #define VS_1 1
 #define VS_IA 2
 #define RULES 3
 
-// GAME 
+//////////// GAME 
 
 #define BARRE "_____________________"
 
-// var 
+///////////// VAR 
+
 #define IA_NAME "JARVIS"
 
 #define SAVED_FILE "game_saved.txt"
@@ -37,6 +38,7 @@
 
 #define P1_JETON 'X'
 #define P2_JETON 'O'
+#define EMPTY_CASE ' '
 
 // players jeton amount 
 #define NB_JETON 21
@@ -44,6 +46,21 @@
 // power 4 game default dimension
 #define DEFAULT_H 6
 #define DEFAULT_W 7
+
+#define DEFAULT_H_2 9
+#define DEFAULT_W_2 8
+
+
+///////////// IA  MIN MAX CONSTANTE
+
+#define DEFAULT_MAX_V -10000
+#define DEFAULT_MIN_V 10000
+
+#define DEFAULT_DEPHT 6
+
+#define START 0
+#define SECOND_STRIKE 1
+
 
 
 // error message 
@@ -88,6 +105,31 @@ struct game_s
 };
 
 
+///////////////// IA & Min Max /////////////////
+
+uc* IA_mode_p4_game();
+
+/** Ia turn function */
+
+struct player_s* IA_turn(int whom);
+
+/** \brief This function is an implementation of the Min Max algorithm */
+
+void p4_IA_3(uc *grid, int size_x, int size_y, uc token);
+
+/** \brief MinMax Min function */
+int min(uc* grid, int depht, int location, int size_x, uc token);
+
+/** \brief MinMax Max function */
+int max(uc* grid, int depht, int location, int size_x, uc token);
+
+
+/** Evaluation function */
+
+int heuristique(uc* grid, uc token, int location, int size_x);
+
+///////////// The game ///////////
+
 /**   \brief display the code */
 
 /** \fn */void display(uc* grid);
@@ -115,11 +157,11 @@ void config_player(int choice);
 
 /** \brief return one if there is a winner else 0 */
 
-int is_winner();
+int is_winner(int location, uc* grid);
 
 /** \brief insertion function */
 
-int insert(int column, uc token);
+int insert(uc* grid, int column, uc token);
 
 /** \brief check the validity of the column  */
 
@@ -148,7 +190,7 @@ int is_empty(uc value);
 
 /** \brief check if a column is not filled of token */
 
-int is_filled(int column);
+int is_filled(uc* grid, int column);
 
 
 /** check horizontaly if the token that have been put finished the game */
@@ -162,3 +204,6 @@ int check_rdiagonal(int pos, uc* grid);
 
 /* check left diagonal  if the token that have been put finished the game */
 int check_ldiagonal(int pos, uc* grid);
+
+
+

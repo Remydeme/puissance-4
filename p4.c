@@ -15,7 +15,7 @@ struct player_s *players = NULL;
 int h = DEFAULT_H;
 int w = DEFAULT_W;
 struct sigaction new_action, old_action;
-static int insert_pos = 0;
+int insert_pos = 0;
 
 uc* grid = NULL;
 
@@ -24,7 +24,7 @@ uc* grid = NULL;
 
 void handle_signal()
 {
-     new_action.sa_handler = save_game;
+    new_action.sa_handler = save_game;
     sigemptyset (&new_action.sa_mask);
     new_action.sa_flags = 0;
 
@@ -39,17 +39,17 @@ void handle_signal()
 void save_game(int signum)
 {
     if (SIGINT == signum)
-            printf ("RECEIVED SIGINT SIGNAL ! SAVING ..." );
+        printf ("RECEIVED SIGINT SIGNAL ! SAVING ..." );
     fflush(stdout);
     FILE* file = fopen(SAVED_FILE, "w+");
     if (file && grid && players)
     {
         for (int i = 0; i < NB_PLAYER_MAX; i++)
-           {
-               fprintf (file, "%s %d %d \n", players[i].name, players[i].tokens, 
-               players[i].score);
-           }
-
+        {
+            fprintf (file, "%s %d %d \n", players[i].name, players[i].tokens, 
+                    players[i].score);
+        }
+        fprintf(file, "%d %d\n", h, w);
         for (int i = 0; i < h * w; i++)
             fputc(grid[i], file);
         free (grid);
@@ -65,11 +65,13 @@ void save_game(int signum)
             fprintf (stderr, "err : %s" , "no players info don't need to save the party");
         else
             free(grid);
-         if (!file)
+        if (!file)
             fprintf (stderr,"err : %s", "err : Error while opening file ");
     }
     exit(EXIT_SUCCESS);
 }
+
+
 
 struct player_s * create_player()
 {
@@ -89,11 +91,11 @@ void config_player(int choice)
         }
     }
     else if (choice == 2)
-       {
-           puts ("Enter the name of the player : ");
-           scanf ("%s", players[0].name);
-           memmove (players[1].name, IA_NAME, sizeof (IA_NAME));
-       }
+    {
+        puts ("Enter the name of the player : ");
+        scanf ("%s", players[0].name);
+        memmove (players[1].name, IA_NAME, sizeof (IA_NAME));
+    }
 }
 
 
@@ -107,14 +109,14 @@ struct player_s* turn(int whom)
         if (!(whom % 2))
         {
             fprintf (stdout, "\n It's your turn %s \n\n %s \n", 
-             players[0].name, PLAY_MSG);
+                    players[0].name, PLAY_MSG);
             scanf("%d", &column);
             getc(stdin);
             if (check_column(column))
             {
-                if (!is_filled(column))
+                if (!is_filled(grid, column))
                 {
-                    insert_pos = insert (column,  P1_JETON);
+                    insert_pos = insert (grid, column,  P1_JETON);
                     players[0].tokens--;
                     played = 1;
                 }
@@ -126,15 +128,15 @@ struct player_s* turn(int whom)
         else
         {
             fprintf (stdout, "\n It's your turn %s \n\n %s \n", 
-            players[1].name, PLAY_MSG);
+                    players[1].name, PLAY_MSG);
             scanf("%d", &column);
             getc(stdin);
             // get the '\n'
             if (check_column(column))
             {
-                if (!is_filled(column))
+                if (!is_filled(grid, column))
                 {
-                    insert_pos = insert (column,  P2_JETON);
+                    insert_pos = insert (grid, column,  P2_JETON);
                     players[1].tokens--;
                     played = 1;
                 }
@@ -180,15 +182,15 @@ void display(uc* grid)
     }
 }
 
-int is_winner()
+int is_winner(int location, uc* grid)
 {
-    if (check_horizontal(insert_pos, grid) >= WIN_VAL)
+    if (check_horizontal(location, grid) >= WIN_VAL)
         return 1;
-    else if (check_vertical(insert_pos, grid) >= WIN_VAL)
+    else if (check_vertical(location, grid) >= WIN_VAL)
         return 1;
-    else if (check_rdiagonal(insert_pos, grid) >= WIN_VAL)
+    else if (check_rdiagonal(location, grid) >= WIN_VAL)
         return 1;
-    else if (check_ldiagonal(insert_pos, grid) >= WIN_VAL)
+    else if (check_ldiagonal(location, grid) >= WIN_VAL)
         return 1;
     else
         return 0;
@@ -199,7 +201,7 @@ int is_winner()
 
 int check_column(int column)
 {
-    return column >= 0 && w > column ? 1 : 0;
+    return column >= 1 && w >= column ? 1 : 0;
 }
 
 
@@ -218,7 +220,7 @@ int check_horizontal(int pos, uc* grid)
         else
             find = false;
     }
-    
+
     cursor = pos;
     find = true;
     /* check the left side */
@@ -320,6 +322,7 @@ int check_ldiagonal(int pos, uc* grid)
     return counter;
 }
 
+
 //////////////////////////////////// grid //////////////////////////////
 
 
@@ -341,10 +344,10 @@ int check_ldiagonal(int pos, uc* grid)
 
 int is_empty(uc case_value)
 {
-    return case_value == ' ';
+    return case_value == EMPTY_CASE;
 }
 
-int insert(int column, uc token)
+int insert(uc* grid, int column, uc token)
 {
     int position = column - 1;
     for (int i = 0 ; (i < h && position < MAX_SIZE) ; i++)
@@ -364,16 +367,40 @@ uc* create_tab(int w, int h)
 {
     uc* tmp =  calloc (MAX_SIZE, sizeof (uint8_t));
     for (int i = 0; i < MAX_SIZE; i++)
-        tmp[i] = ' ';
+        tmp[i] = EMPTY_CASE;
     return tmp;
 }
 
 
-int is_filled(int column)
+int is_filled(uc* grid, int column)
 {
-    return grid[(h - 1) * w  +  column - 1] != ' ';
+    return grid[(h - 1) * w  +  column - 1] != EMPTY_CASE;
 }
 
+/////////////////// TREE ///////////////////////////
+
+/*
+struct node_s*  init_tree(uc* grid)
+{
+    struct node_s* new_node = calloc (1, sizeof (struct node_s));
+    new_node->grid = grid;
+    return new_node;
+}
+
+struct node_s* insert_child(struct node_s* root, int rank, uc token, int player)
+{
+    root->children[rank] = new_node();
+    if (root->children[rank])
+    {
+        // create a function for the grid 
+        int position = insert(root->grid, rank, token); 
+        root->children[rank]->grid = 
+        if (player == IA)
+            root->children[rank]->
+    //    root->children[rank]->weight = 
+    }
+}
+*/
 
 
 /////////////////// GAME ///////////////////////////
@@ -391,7 +418,7 @@ uc* p4_game()
         {
             display(grid);
             player = turn(whom);
-            if (is_winner())
+            if (is_winner(insert_pos, grid))
             {
                 finished = END;
                 player->score++;
@@ -407,4 +434,5 @@ uc* p4_game()
         fprintf(stderr, "mssg : %s \n", ALLOCATION_ERROR);
     return grid;
 }
+
 

@@ -7,3 +7,7 @@ return the position where the token has been put
 
 
 -> check function 
+
+# alone => 0
+# bloc => 1
+# align => 1
