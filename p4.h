@@ -17,6 +17,9 @@
 
 // GAME 
 
+#define BARRE "_____________________"
+
+// var 
 #define IA_NAME "JARVIS"
 
 #define SAVED_FILE "game_saved.txt"

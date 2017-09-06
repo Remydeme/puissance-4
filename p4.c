@@ -4,6 +4,7 @@
 #include <string.h>
 #include <limits.h>
 #include <signal.h>
+#include <stdbool.h>
 #include "p4.h"
 
 
@@ -163,13 +164,17 @@ void check_party_null(int whom, int *finished)
 
 void display(uc* grid)
 {
+    for (int i = 0; i < w; i++)
+        printf ("|%d|", i + 1);
+    printf ("\n");
+    puts (BARRE);
     for (int i = (h - 1) * w; i >= 0; i -= 7)
     {
-        printf ("|");
+        printf ("| ");
         for (int j = i; j < i + w; j++)
         {
             printf ("%c", grid[j]);
-            printf ("|");
+            printf (" |");
         }
         printf ("\n");
     }
@@ -203,24 +208,27 @@ int check_horizontal(int pos, uc* grid)
     int cursor = pos;
     uc token = grid[pos];
     int counter = 1;
+    bool find = true;
     /*start by checking the right side*/
-    while (cursor < MAX_SIZE)
+    while (cursor < MAX_SIZE && find)
     {
         cursor += w;
         if (grid[cursor] == token)
             counter++;
         else
-            break;
+            find = false;
     }
-    /* check the left side */
+    
     cursor = pos;
-    while (cursor > 0)
+    find = true;
+    /* check the left side */
+    while (cursor > 0 && find)
     {
         cursor -= w;
         if (grid[cursor] == token)
             counter++;
         else
-            break;
+            find = false;
     }
     return counter;
 }
@@ -230,24 +238,26 @@ int check_vertical(int pos, uc* grid)
     int cursor = pos;
     uc token = grid[pos];
     int counter = 1;
+    bool find = true;
     /*start by checking the right side*/
-    while (cursor < MAX_SIZE)
+    while (cursor < MAX_SIZE && find)
     {
         cursor += ONE;
         if (grid[cursor] == token)
             counter++;
         else
-            break;
+            find = false;
     }
     /* check the left side */
     cursor = pos;
-    while (cursor > 0)
+    find = true;
+    while (cursor > 0 && find)
     {
         cursor -= ONE;
         if (grid[cursor] == token)
             counter++;
         else
-            break;
+            find = false;
     }
     return counter;
 }
@@ -257,24 +267,26 @@ int check_rdiagonal(int pos, uc* grid)
     int cursor = pos;
     uc token = grid[pos];
     int counter = ONE;
+    bool find = true;
     /*start by checking the right side*/
-    while (cursor < MAX_SIZE)
+    while (cursor < MAX_SIZE && find)
     {
         cursor += (w + 1);
         if (grid[cursor] == token)
             counter++;
         else
-            break;
+            find = false;
     }
     /* check the left side */
     cursor = pos;
-    while (cursor > 0)
+    find = true;
+    while (cursor > 0 && find)
     {
         cursor -= (w + 1);
         if (grid[cursor] == token)
             counter++;
         else
-            break;
+            find = false;
     }
     return counter;
 }
@@ -284,24 +296,26 @@ int check_ldiagonal(int pos, uc* grid)
     int cursor = pos;
     uc token = grid[pos];
     int counter = 1;
+    bool find = true;
     /*start by checking the right side*/
-    while (cursor < MAX_SIZE)
+    while (cursor < MAX_SIZE && find)
     {
         cursor += (w - 1);
         if (grid[cursor] == token)
             counter++;
         else
-            break;
+            find = false;
     }
     /* check the left side */
     cursor = pos;
-    while (cursor > 0)
+    find = true;
+    while (cursor > 0 && find)
     {
         cursor -= (w - 1);
         if (grid[cursor] == token)
             counter++;
         else
-            break;
+            find = false;
     }
     return counter;
 }

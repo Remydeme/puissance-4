@@ -10,7 +10,6 @@ int main()
 {
     int choice = 0;
     players = create_player();
-
     system ("./p4.sh"); 
     handle_signal();
     /* Set up the structure to specify the new action. */
