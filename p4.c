@@ -4,7 +4,6 @@
 #include <string.h>
 #include <limits.h>
 #include <signal.h>
-#include <stdbool.h>
 #include "p4.h"
 
 
@@ -185,13 +184,25 @@ void display(uc* grid)
 int is_winner(int location, uc* grid)
 {
     if (check_horizontal(location, grid) >= WIN_VAL)
+    {
+      //  printf ("Winner horizontal : location : %d", location);
         return 1;
+    }
     else if (check_vertical(location, grid) >= WIN_VAL)
+    {
+    //    printf ("Winner horizontal : location : %d", location);
         return 1;
+    }
     else if (check_rdiagonal(location, grid) >= WIN_VAL)
+    {
+    //    printf ("Winner horizontal : location : %d", location);
         return 1;
+    }
     else if (check_ldiagonal(location, grid) >= WIN_VAL)
+    {
+    //    printf ("Winner horizontal : location : %d", location);
         return 1;
+    }
     else
         return 0;
 }
@@ -224,7 +235,7 @@ int check_horizontal(int pos, uc* grid)
     cursor = pos;
     find = true;
     /* check the left side */
-    while (cursor > 0 && find)
+    while (cursor >= 0 && find)
     {
         cursor -= w;
         if (grid[cursor] == token)
@@ -253,7 +264,7 @@ int check_vertical(int pos, uc* grid)
     /* check the left side */
     cursor = pos;
     find = true;
-    while (cursor > 0 && find)
+    while (cursor >= 0 && find)
     {
         cursor -= ONE;
         if (grid[cursor] == token)
@@ -282,7 +293,7 @@ int check_rdiagonal(int pos, uc* grid)
     /* check the left side */
     cursor = pos;
     find = true;
-    while (cursor > 0 && find)
+    while (cursor >= 0 && find)
     {
         cursor -= (w + 1);
         if (grid[cursor] == token)
@@ -311,7 +322,7 @@ int check_ldiagonal(int pos, uc* grid)
     /* check the left side */
     cursor = pos;
     find = true;
-    while (cursor > 0 && find)
+    while (cursor >= 0 && find)
     {
         cursor -= (w - 1);
         if (grid[cursor] == token)

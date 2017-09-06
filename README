@@ -11,3 +11,7 @@ return the position where the token has been put
 # alone => 0
 # bloc => 1
 # align => 1
+
+
+racine => noeud vert on prend max du retour des valeur de la racine 
+les rouge prennent la valeur min de leur fils; 

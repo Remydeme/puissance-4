@@ -4,6 +4,9 @@
 */
 #pragma once
 
+#include <stdbool.h>
+
+
 #define VRAI 1
 #define FAUX 0
 
@@ -53,8 +56,8 @@
 
 ///////////// IA  MIN MAX CONSTANTE
 
-#define DEFAULT_MAX_V -10000
-#define DEFAULT_MIN_V 10000
+#define DEFAULT_MAX_V -1000
+#define DEFAULT_MIN_V 1000
 
 #define DEFAULT_DEPHT 6
 
@@ -123,11 +126,13 @@ int min(uc* grid, int depht, int location, int size_x, uc token);
 /** \brief MinMax Max function */
 int max(uc* grid, int depht, int location, int size_x, uc token);
 
+bool is_taken(uc* grid, int column);
 
 /** Evaluation function */
 
 int heuristique(uc* grid, uc token, int location, int size_x);
 
+int alignement(uc * grid, int location);
 ///////////// The game ///////////
 
 /**   \brief display the code */

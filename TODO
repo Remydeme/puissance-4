@@ -1,3 +1,10 @@
 save todo 
 display to improve 
-IA 
+IA :
+ - function that filled the grid with a tokens and filled the weight of the node 
+ - function general that return the position where we have to play
+
+ - function that compute the min for the IA 
+ - function that compute the max for the Player
+ - use the check function has weight function / 1 if it's close to a nother
+   same token 0 if it's lonely -1.  5 if it's a win strike
