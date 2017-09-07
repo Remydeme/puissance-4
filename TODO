@@ -10,5 +10,12 @@ IA :
    same token 0 if it's lonely -1.  5 if it's a win strike
 
 
+-------> TEXTE file with explication of the IA 
 
-   ####### REMAINS SOME BUG for the win part ######
+_------> Options : variable size 
+
+-------> improve the display of the game 
+
+--------> Implement the alpha beta algo
+
+####### REMAINS SOME BUG for the win part ######

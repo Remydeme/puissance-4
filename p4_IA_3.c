@@ -4,217 +4,46 @@
 #include "p4.h"
 
 extern uc* grid;
-extern int insert_pos;
+int IA_insert_pos;
 extern struct player_s* players;
 extern int h;
 extern int w;
 
 int strike = 0;
+static int is_filled_1(uc* grid, int column)
+{
+    return grid[(h - 1) * w  +  column - 1] != EMPTY_CASE;
+}
 
-bool is_taken(uc* grid, int column)
+static bool is_taken(uc* grid, int column)
 {
     return (column >= 0 && column < h * w) && grid[column - 1] != EMPTY_CASE ? true : false;
 }
 
-void p4_IA_3(uc* grid, int size_x, int size_y, uc token)
+
+
+
+static int IA_check_column(int column)
 {
-    int max = DEFAULT_MAX_V;
-    size_y = 0;
-    int rv_min = 0;
-    int profondeur = DEFAULT_DEPHT;
-    int rank = 0;
-    static int prec_strike;
-    switch (strike)
-    {
-        case START:
-            if (!is_taken(grid, size_x / 2))
-                prec_strike = insert(grid, size_x / 2, token) + 1;
-            else
-                prec_strike = insert(grid, size_x / 2 + 1, token) + 1;
-            /*get the value in oder to realise the verification*/
-            insert_pos = prec_strike - 1;
-          break;
-      case SECOND_STRIKE :
-                if (!is_taken(grid, prec_strike + w))
-                    prec_strike = insert(grid, prec_strike + w, token);
-                else if (!is_taken(grid, prec_strike + ONE))
-                    prec_strike = insert(grid, prec_strike + ONE, token);
-                else
-                    prec_strike = insert(grid, prec_strike - ONE, token);
-           break;
-        default :
-            {
-                for (int i = 1; i <= size_x; i++)
-                {
-                    if (!is_filled(grid, i))
-                    {
-                        int location = insert(grid, i, token);
-                        rv_min = min(grid, profondeur - 1, location, size_x, token);
-                        if (rv_min > max)
-                        {
-                            max = rv_min;
-                            rank = i;
-                        }
-                        grid[location] = EMPTY_CASE;
-                    }
-                }
-                insert_pos = insert(grid, rank, token);
-            }
-         break;
-    }
-    strike++;
+    return column >= 1 && w >= column ? 1 : 0;
 }
 
-
-int max(uc* grid, int profondeur, int location, int size_x, uc token)
+static int insert(uc* grid, int column, uc token)
 {
-    if (profondeur == 0 || is_winner(location, grid))
-        return heuristique(grid, (token == P1_JETON) ? P2_JETON : P1_JETON, location, size_x);
-    int max = DEFAULT_MAX_V;
-    int rv_max = 0;
-    uc next_token = (token == P1_JETON) ? P2_JETON : P1_JETON;
-    for (int i = 1; i <= size_x; i++)
+    int position = column - 1;
+    for (int i = 0 ; (i < h && position < MAX_SIZE) ; i++)
     {
-        if (!is_filled(grid, i))
+        if (is_empty(grid[position]))
         {
-            int pos = insert(grid, i, next_token);
-            rv_max = min(grid, profondeur - 1, pos, size_x, next_token);
-            if (rv_max > max)
-                max = rv_max;
-            grid[pos] = EMPTY_CASE;
+            grid[position] = token;
+            break;
         }
+        position += w;
     }
-    return max;
+    return position;
 }
 
-int min(uc* grid, int profondeur, int location, int size_x, uc token)
-{
-    if (profondeur == 0 || is_winner(location, grid))
-        return  heuristique(grid, token, location, size_x);
-    int min = DEFAULT_MIN_V;
-    int rv_min = 0;
-    uc next_token = (token == P1_JETON) ? P2_JETON : P1_JETON;
-    for (int i = 1; i <= size_x; i++)
-    {
-        if (!is_filled(grid, i))
-        {
-            int pos = insert(grid, i, next_token);
-            rv_min = max(grid, profondeur - 1, pos, size_x, next_token);
-            if (rv_min < min)
-                min = rv_min;
-            grid[pos] = EMPTY_CASE;
-        }
-    }
-    return min;
-}
-
-int heuristique(uc* grid, uc token, int location, int size_x)
-{
-    int nb_pions = 0;
-    bool end = false;
-    const int size_y = size_x == DEFAULT_W ? DEFAULT_H : DEFAULT_H_2;
-    for (int i = 0; i < size_y * size_x && ! end; i++)
-    {
-        if (grid[i] == ' ')
-            end = true;
-        else
-            nb_pions++;
-    }
-
-    if (is_winner(location, grid))
-    {
-        /* test if it's player one => IA*/
-        if (token == grid[location])
-            return DEFAULT_MIN_V - nb_pions;
-        else
-            return DEFAULT_MAX_V + nb_pions;
-    }
-    return (token == grid[location]) ? alignement(grid, location) : - alignement(grid, location);
-}
-
-struct player_s* IA_turn(int whom)
-{
-    int column = 0;
-    int played = 0;
-    while (!played)
-    {
-        if (!(whom % 2))
-        {
-            fprintf (stdout, "\n It's your turn %s \n\n %s \n", 
-                    players[0].name, PLAY_MSG);
-            scanf("%d", &column);
-            getc(stdin);
-            if (check_column(column))
-            {
-                if (!is_filled(grid, column))
-                {
-                    insert_pos = insert (grid, column,  P1_JETON);
-                    players[0].tokens--;
-                    played = 1;
-                }
-                else
-                    fprintf (stderr, "err : %s \n", COLUMN_FILLED); 
-            }
-            else fprintf (stderr, "err: %s \n",  ERR_INPUT);
-        }
-        else
-        {
-            fprintf (stdout, "\n It's your turn %s \n\n %s \n", 
-                    players[1].name, PLAY_MSG);
-            players[1].tokens--;
-            p4_IA_3(grid, w, h, P2_JETON);
-            played = 1;
-        }
-    }
-    return &players[whom % 2]; 
-}
-
-int alignement(uc * grid, int location)
-{
-    int total = 0;
-    total += check_vertical(location, grid);
-    total += check_horizontal(location, grid);
-    total += check_rdiagonal(location, grid);
-    total += check_ldiagonal(location, grid);
-
-    return total;
-}
-
-uc* IA_mode_p4_game()
-{
-    int finished = START;
-    int whom = 0;
-    struct player_s* player = NULL;
-    grid = create_tab(w, h);
-    if (grid)
-    {
-        while (!finished)
-        {
-            display(grid);
-            player = IA_turn(whom);
-            if (is_winner(insert_pos, grid))
-            {
-                printf ( "%s Wins \n", player->name);
-                finished = END;
-                strike = 0;
-                player->score++;
-                // retore the player tokens nb // 
-                players[0].tokens = MAX_SIZE / 2;
-                players[1].tokens = MAX_SIZE / 2;
-                display(grid);
-                continue;
-            }
-            whom++;
-            check_party_null(whom, &finished);
-            //system("clear");
-        }
-    }
-    else
-        fprintf(stderr, "mssg : %s \n", ALLOCATION_ERROR);
-    return grid;
-}
-
-int is_winner(int location, uc* grid)
+static int IA_is_winner(int location, uc* grid)
 {
     if (check_horizontal(location, grid) >= WIN_VAL)
     {
@@ -243,13 +72,8 @@ int is_winner(int location, uc* grid)
 
 
 
-int check_column(int column)
-{
-    return column >= 1 && w >= column ? 1 : 0;
-}
 
-
-int check_vertical(int pos, uc* grid)
+int IA_check_vertical(int pos, uc* grid)
 {
     int cursor = pos;
     uc token = grid[pos];
@@ -261,6 +85,8 @@ int check_vertical(int pos, uc* grid)
         cursor += w;
         if (grid[cursor] == token)
             counter++;
+         else if (grid[cursor] == EMPTY_CASE && (cursor + w) < MAX_SIZE && grid[cursor + w] == token)
+             counter++;
         else
             find = false;
     }
@@ -273,13 +99,15 @@ int check_vertical(int pos, uc* grid)
         cursor -= w;
         if (grid[cursor] == token)
             counter++;
+        else if (grid[cursor] == EMPTY_CASE && cursor - w >= 0 && grid[cursor - w] ==  token)
+            counter++;
         else
             find = false;
     }
     return counter;
 }
 
-int check_horizontal(int pos, uc* grid)
+static int IA_check_horizontal(int pos, uc* grid)
 {
     int cursor = pos + ONE;
     uc token = grid[pos];
@@ -294,6 +122,9 @@ int check_horizontal(int pos, uc* grid)
     {
         if (grid[cursor] == token)
             counter++;
+       else if (grid[cursor] == EMPTY_CASE && (cursor + ONE) < hight_limit 
+            && grid[cursor + ONE])
+            counter++;
         else
             find = false;
         cursor += ONE;
@@ -305,6 +136,9 @@ int check_horizontal(int pos, uc* grid)
     {
         if (grid[cursor] == token)
             counter++;
+        else if (grid[cursor] == EMPTY_CASE && (cursor - ONE) >= low_limit 
+            && grid[cursor - ONE])
+            counter++;
         else
             find = false;
         cursor -= ONE;
@@ -312,7 +146,7 @@ int check_horizontal(int pos, uc* grid)
     return counter;
 }
 
-int check_rdiagonal(int pos, uc* grid)
+static int IA_check_rdiagonal(int pos, uc* grid)
 {
     int cursor = pos;
     uc token = grid[pos];
@@ -323,6 +157,10 @@ int check_rdiagonal(int pos, uc* grid)
     {
         cursor += (w + 1);
         if (grid[cursor] == token)
+            counter++;
+        else if (grid[cursor] == EMPTY_CASE 
+            && cursor + (w + 1) 
+            && grid[cursor + w + 1] == token)
             counter++;
         else
             find = false;
@@ -335,14 +173,17 @@ int check_rdiagonal(int pos, uc* grid)
         cursor -= (w + 1);
         if (grid[cursor] == token)
             counter++;
+        else if (grid[cursor] == EMPTY_CASE 
+            && ((cursor % w)  && cursor >= 0) 
+            && grid[cursor - (w + 1)] == token)
+            counter++;
         else
             find = false;
-        //printf (" cursor : %d nb : %d  \n", cursor, counter);
     }
     return counter;
 }
 
-int check_ldiagonal(int pos, uc* grid)
+static int IA_check_ldiagonal(int pos, uc* grid)
 {
     int cursor = pos;
     uc token = grid[pos];
@@ -353,6 +194,10 @@ int check_ldiagonal(int pos, uc* grid)
     {
         cursor += (w - 1);
         if (grid[cursor] == token)
+            counter++;
+        else if (grid[cursor] == EMPTY_CASE 
+            && (cursor % w) && cursor < MAX_SIZE 
+            && grid[cursor + (w - 1)] == token)
             counter++;
         else
             find = false;
@@ -371,34 +216,214 @@ int check_ldiagonal(int pos, uc* grid)
     return counter;
 }
 
-void check_party_null(int whom, int *finished)
-{
-    if (whom == MAX_SIZE)
-    {
-        fprintf (stdout, "msg : %s \n", MATCH_NULL);
-        *finished = END;
-    }
 
+static int alignement(uc * grid, int location)
+{
+    int total = 0;
+    total += IA_check_vertical(location, grid);
+    total += IA_check_horizontal(location, grid);
+    total += IA_check_rdiagonal(location, grid);
+    total += IA_check_ldiagonal(location, grid);
+
+    return total;
 }
 
-int insert(uc* grid, int column, uc token)
+
+
+
+static int heuristique(uc* grid, uc token, int location, int size_x)
 {
-    int position = column - 1;
-    for (int i = 0 ; (i < h && position < MAX_SIZE) ; i++)
+    int nb_pions = 0;
+    bool end = false;
+    const int size_y = size_x == DEFAULT_W ? DEFAULT_H : DEFAULT_H_2;
+    for (int i = 0; i < size_y * size_x && ! end; i++)
     {
-        if (is_empty(grid[position]))
+        if (grid[i] == ' ')
+            end = true;
+        else
+            nb_pions++;
+    }
+
+    if (IA_is_winner(location, grid))
+    {
+        /* test if it's player one => IA*/
+        if (token == grid[location])
+            return DEFAULT_MIN_V - nb_pions;
+        else
+            return DEFAULT_MAX_V + nb_pions;
+    }
+    return (token == grid[location]) ? alignement(grid, location) : - alignement(grid, location);
+}
+
+
+static int min(uc* grid, int profondeur, int location, int size_x, uc token);
+
+static int max(uc* grid, int profondeur, int location, int size_x, uc token)
+{
+    if (profondeur == 0 || IA_is_winner(location, grid))
+        return heuristique(grid, (token == P1_JETON) ? P2_JETON : P1_JETON, location, size_x);
+    int max = DEFAULT_MAX_V;
+    int rv_max = 0;
+    uc next_token = (token == P1_JETON) ? P2_JETON : P1_JETON;
+    for (int i = 1; i <= size_x; i++)
+    {
+        if (!is_filled_1(grid, i))
         {
-            grid[position] = token;
-            break;
+            int pos = insert(grid, i, next_token);
+            rv_max = min(grid, profondeur - 1, pos, size_x, next_token);
+            if (rv_max > max)
+                max = rv_max;
+            grid[pos] = EMPTY_CASE;
         }
-        position += w;
     }
-    return position;
+    return max;
 }
 
-
-
-int is_filled(uc* grid, int column)
+static int min(uc* grid, int profondeur, int location, int size_x, uc token)
 {
-    return grid[(h - 1) * w  +  column - 1] != EMPTY_CASE;
+    if (profondeur == 0 || IA_is_winner(location, grid))
+        return  heuristique(grid, token, location, size_x);
+    int min = DEFAULT_MIN_V;
+    int rv_min = 0;
+    uc next_token = (token == P1_JETON) ? P2_JETON : P1_JETON;
+    for (int i = 1; i <= size_x; i++)
+    {
+        if (!is_filled_1(grid, i))
+        {
+            int pos = insert(grid, i, next_token);
+            rv_min = max(grid, profondeur - 1, pos, size_x, next_token);
+            if (rv_min < min)
+                min = rv_min;
+            grid[pos] = EMPTY_CASE;
+        }
+    }
+    return min;
 }
+
+
+
+void p4_IA_3(uc* grid, int size_x, int size_y, uc token)
+{
+    int max = DEFAULT_MAX_V;
+    size_y = 0;
+    int rv_min = 0;
+    int profondeur = DEFAULT_DEPHT;
+    int rank = 0;
+    static int prec_strike;
+    switch (strike)
+    {
+        case START:
+            if (!is_taken(grid, size_x / 2))
+                prec_strike = insert(grid, size_x / 2, token) + 1;
+            else
+                prec_strike = insert(grid, size_x / 2 + 1, token) + 1;
+            /*get the value in oder to realise the verification*/
+            IA_insert_pos = prec_strike - 1;
+          break;
+      case SECOND_STRIKE :
+                if (!is_taken(grid, prec_strike + size_x))
+                    prec_strike = insert(grid, prec_strike + size_x, token);
+                else if (!is_taken(grid, prec_strike + ONE))
+                    prec_strike = insert(grid, prec_strike + ONE, token);
+                else
+                    prec_strike = insert(grid, prec_strike - ONE, token);
+           break;
+        default :
+            {
+                for (int i = 1; i <= size_x; i++)
+                {
+                    if (!is_filled_1(grid, i))
+                    {
+                        int location = insert(grid, i, token);
+                        rv_min = min(grid, profondeur - 1, location, size_x, token);
+                        if (rv_min > max)
+                        {
+                            max = rv_min;
+                            rank = i;
+                        }
+                        grid[location] = EMPTY_CASE;
+                    }
+                }
+                IA_insert_pos = insert(grid, rank, token);
+            }
+         break;
+    }
+    strike++;
+}
+
+struct player_s* IA_turn(int whom)
+{
+    int column = 0;
+    int played = 0;
+    while (!played)
+    {
+        if (!(whom % 2))
+        {
+            fprintf (stdout, "\n It's your turn %s \n\n %s \n", 
+                    players[0].name, PLAY_MSG);
+            scanf("%d", &column);
+            getc(stdin);
+            if (IA_check_column(column))
+            {
+                if (!is_filled_1(grid, column))
+                {
+                    IA_insert_pos = insert (grid, column,  P1_JETON);
+                    players[0].tokens--;
+                    played = 1;
+                }
+                else
+                    fprintf (stderr, "err : %s \n", COLUMN_FILLED); 
+            }
+            else fprintf (stderr, "err: %s \n",  ERR_INPUT);
+        }
+        else
+        {
+            fprintf (stdout, "\n It's your turn %s \n\n %s \n", 
+                    players[1].name, PLAY_MSG);
+            players[1].tokens--;
+            p4_IA_3(grid, w, h, P2_JETON);
+            played = 1;
+        }
+    }
+    return &players[whom % 2]; 
+}
+
+uc* IA_mode_p4_game()
+{
+    int finished = START;
+    int whom = 0;
+    struct player_s* player = NULL;
+    grid = create_tab(w, h);
+    if (grid)
+    {
+        while (!finished)
+        {
+            display(grid);
+            player = IA_turn(whom);
+            if (IA_is_winner(IA_insert_pos, grid))
+            {
+                printf ( "%s Wins \n", player->name);
+                finished = END;
+                strike = 0;
+                player->score++;
+                // retore the player tokens nb // 
+                players[0].tokens = MAX_SIZE / 2;
+                players[1].tokens = MAX_SIZE / 2;
+                display(grid);
+                continue;
+            }
+            whom++;
+            check_party_null(whom, &finished);
+            system("clear");
+        }
+    }
+    else
+        fprintf(stderr, "mssg : %s \n", ALLOCATION_ERROR);
+    return grid;
+}
+
+
+
+
+
+

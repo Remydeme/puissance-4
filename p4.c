@@ -21,6 +21,37 @@ uc* grid = NULL;
 
 ///////////////////////////// player ////////////////////////////
 
+int is_filled(uc* grid, int column)
+{
+    return grid[(h - 1) * w  +  column - 1] != EMPTY_CASE;
+}
+
+int is_winner_1(int location, uc* grid)
+{
+    if (check_horizontal(location, grid) >= WIN_VAL)
+    {
+       // printf ("horizontal : %d ", location);
+        return 1;
+    }
+    else if (check_vertical(location, grid) >= WIN_VAL)
+    {
+       // printf ("vertical : %d ", location);
+        return 1;
+    }
+    else if (check_rdiagonal(location, grid) >= WIN_VAL)
+    {
+      //  printf ("r diagonal %d ", location);
+        return 1;
+    }
+    else if (check_ldiagonal(location, grid) >= WIN_VAL)
+    {
+       // printf ("l diagonal %d ", location);
+        return 1;
+    }
+    else
+        return 0;
+}
+
 void handle_signal()
 {
     new_action.sa_handler = save_game;
@@ -140,7 +171,7 @@ struct player_s* turn(int whom)
             {
                 if (!is_filled(grid, column))
                 {
-                    insert_pos = insert (grid, column,  P1_JETON);
+                    insert_pos = insert_1 (grid, column,  P1_JETON);
                     players[0].tokens--;
                     played = 1;
                 }
@@ -160,7 +191,7 @@ struct player_s* turn(int whom)
             {
                 if (!is_filled(grid, column))
                 {
-                    insert_pos = insert (grid, column,  P2_JETON);
+                    insert_pos = insert_1 (grid, column,  P2_JETON);
                     players[1].tokens--;
                     played = 1;
                 }
@@ -182,19 +213,21 @@ struct player_s* turn(int whom)
 
 void display(uc* grid)
 {
+    puts (BARRE_D);
     for (int i = 0; i < w; i++)
-        printf ("|%d|", i + 1);
+        printf ("| %d |", i + 1);
     printf ("\n");
-    puts (BARRE);
+    puts (BARRE_U);
     for (int i = (h - 1) * w; i >= 0; i -= 7)
     {
-        printf ("| ");
         for (int j = i; j < i + w; j++)
         {
+            printf ("| ");
             printf ("%c", grid[j]);
             printf (" |");
         }
-        printf ("\n");
+        printf("\n");
+        puts(BARRE_U);
     }
 }
 
@@ -262,6 +295,127 @@ root->children[rank]->
 }
  */
 
+int check_vertical(int pos, uc* grid)
+{
+    int cursor = pos;
+    uc token = grid[pos];
+    int counter = 1;
+    bool find = true;
+    /*start by checking the right side*/
+    while (cursor < MAX_SIZE && find)
+    {
+        cursor += w;
+        if (grid[cursor] == token)
+            counter++;
+        else
+            find = false;
+    }
+
+    cursor = pos;
+    find = true;
+    /* check the left side */
+    while (cursor >= 0 && find)
+    {
+        cursor -= w;
+        if (grid[cursor] == token)
+            counter++;
+        else
+            find = false;
+    }
+    return counter;
+}
+
+int check_horizontal(int pos, uc* grid)
+{
+    int cursor = pos + ONE;
+    uc token = grid[pos];
+    int counter = 1;
+    bool find = true;
+    int low_limit = ((pos / w) * w);
+    low_limit = low_limit < 0 ? 0 : low_limit;
+    int hight_limit = ((pos / w) + 1) * w;
+    hight_limit = hight_limit > MAX_SIZE ? MAX_SIZE : hight_limit;
+    /*start by checking the right side*/
+    while (cursor < hight_limit && find)
+    {
+        if (grid[cursor] == token)
+            counter++;
+        else
+            find = false;
+        cursor += ONE;
+    }
+    /* check the left side */
+    cursor = pos - ONE;
+    find = true;
+    while (cursor >= low_limit && find)
+    {
+        if (grid[cursor] == token)
+            counter++;
+        else
+            find = false;
+        cursor -= ONE;
+    }
+    return counter;
+}
+
+int check_rdiagonal(int pos, uc* grid)
+{
+    int cursor = pos;
+    uc token = grid[pos];
+    int counter = ONE;
+    bool find = true;
+    /*start by checking the right side*/
+    while (((cursor + 1) % w) && cursor < MAX_SIZE  && find)
+    {
+        cursor += (w + 1);
+        if (grid[cursor] == token)
+            counter++;
+        else
+            find = false;
+    }
+    /* check the left side */
+    cursor = pos;
+    find = true;
+    while ((cursor % w)  && cursor >= 0 && find)
+    {
+        cursor -= (w + 1);
+        if (grid[cursor] == token)
+            counter++;
+        else
+            find = false;
+        //printf (" cursor : %d nb : %d  \n", cursor, counter);
+    }
+    return counter;
+}
+
+int check_ldiagonal(int pos, uc* grid)
+{
+    int cursor = pos;
+    uc token = grid[pos];
+    int counter = 1;
+    bool find = true;
+    /*start by checking the right side*/
+    while ((cursor % w) && cursor < MAX_SIZE && find)
+    {
+        cursor += (w - 1);
+        if (grid[cursor] == token)
+            counter++;
+        else
+            find = false;
+    }
+    /* check the left side */
+    cursor = pos;
+    find = true;
+    while (((cursor + 1) % w) && cursor >= 0 && find)
+    {
+        cursor -= (w - 1);
+        if (grid[cursor] == token)
+            counter++;
+        else
+            find = false;
+    }
+    return counter;
+}
 
 /////////////////// GAME ///////////////////////////
 
@@ -280,7 +434,7 @@ uc* p4_game(int flag)
         {
             display(grid);
             player = turn(whom);
-            if (is_winner(insert_pos, grid))
+            if (is_winner_1(insert_pos, grid))
             {
                 finished = END;
                 player->score++;
@@ -297,6 +451,37 @@ uc* p4_game(int flag)
     else
         fprintf(stderr, "mssg : %s \n", ALLOCATION_ERROR);
     return grid;
+}
+
+int insert_1(uc* grid, int column, uc token)
+{
+    int position = column - 1;
+    for (int i = 0 ; (i < h && position < MAX_SIZE) ; i++)
+    {
+        if (is_empty(grid[position]))
+        {
+            grid[position] = token;
+            break;
+        }
+        position += w;
+    }
+    return position;
+}
+
+void check_party_null(int whom, int *finished)
+{
+    if (whom == MAX_SIZE)
+    {
+        fprintf (stdout, "msg : %s \n", MATCH_NULL);
+        *finished = END;
+    }
+
+}
+
+
+ int check_column(int column)
+{
+    return column >= 1 && w >= column ? 1 : 0;
 }
 
 

@@ -20,7 +20,8 @@
 
 //////////// GAME 
 
-#define BARRE "_____________________"
+#define BARRE_D "___________________________________"
+#define BARRE_U "-----------------------------------"
 
 ///////////// VAR 
 #define NORMAL 1
@@ -112,7 +113,10 @@ struct game_s
 
 ///////////////// IA & Min Max /////////////////
 
+
 uc* IA_mode_p4_game();
+
+struct player_s* IA_turn(int whom);
 
 /** Ia turn function */
 
@@ -123,18 +127,13 @@ struct player_s* IA_turn(int whom);
 void p4_IA_3(uc *grid, int size_x, int size_y, uc token);
 
 /** \brief MinMax Min function */
-int min(uc* grid, int depht, int location, int size_x, uc token);
 
 /** \brief MinMax Max function */
-int max(uc* grid, int depht, int location, int size_x, uc token);
 
-bool is_taken(uc* grid, int column);
 
 /** Evaluation function */
 
-int heuristique(uc* grid, uc token, int location, int size_x);
 
-int alignement(uc * grid, int location);
 ///////////// The game ///////////
 
 
@@ -155,6 +154,8 @@ uc* p4_game();
  *in order to save file  
  */
 
+int is_winner_1(int location, uc* grid);
+
 void handle_signal();
 
 /** \brief function to save the game */
@@ -171,7 +172,7 @@ int is_winner(int location, uc* grid);
 
 /** \brief insertion function */
 
-int insert(uc* grid, int column, uc token);
+int insert_1(uc* grid, int column, uc token);
 
 /** \brief check the validity of the column  */
 
