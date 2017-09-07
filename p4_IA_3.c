@@ -34,13 +34,11 @@ void p4_IA_3(uc* grid, int size_x, int size_y, uc token)
             /*get the value in oder to realise the verification*/
             insert_pos = prec_strike;
           break;
-       case SECOND_STRIKE :
+     /*  case SECOND_STRIKE :
                 printf ("precedent strike : %d", prec_strike);
                 if (!is_taken(grid, prec_strike + w))
                     insert(grid, prec_strike + w, token);
-                else
-                    insert(grid, prec_strike + ONE, token);
-             break;
+           break;*/
         default :
             {
                 for (int i = 1; i <= size_x; i++)
@@ -70,13 +68,7 @@ void p4_IA_3(uc* grid, int size_x, int size_y, uc token)
 int max(uc* grid, int profondeur, int location, int size_x, uc token)
 {
     if (profondeur == 0 || is_winner(location, grid))
-    {
-        //printf ("\n\n In max funtion : p : %d \n", profondeur);
-        //display(grid);
-        int h = heuristique(grid, (token == P1_JETON) ? P2_JETON : P1_JETON, location, size_x);
-        //printf("heuristique : %d \n\n", h);
-        return h;
-    }
+        return heuristique(grid, (token == P1_JETON) ? P2_JETON : P1_JETON, location, size_x);
     int max = DEFAULT_MAX_V;
     int rv_max = 0;
     uc next_token = (token == P1_JETON) ? P2_JETON : P1_JETON;
@@ -97,13 +89,7 @@ int max(uc* grid, int profondeur, int location, int size_x, uc token)
 int min(uc* grid, int profondeur, int location, int size_x, uc token)
 {
     if (profondeur == 0 || is_winner(location, grid))
-    {
-       // printf ("\n\n In min funtion : p : %d \n", profondeur);
-       // display(grid);
-        int h =  heuristique(grid, token, location, size_x);
-       // printf ("Heuristique : %d \n\n", h);
-        return h;
-    }
+        return  heuristique(grid, token, location, size_x);
     int min = DEFAULT_MIN_V;
     int rv_min = 0;
     uc next_token = (token == P1_JETON) ? P2_JETON : P1_JETON;
@@ -207,7 +193,7 @@ uc* IA_mode_p4_game()
             player = IA_turn(whom);
             if (is_winner(insert_pos, grid))
             {
-                printf ( "Winner is %s", player->name);
+                printf ( "%s Wins", player->name);
                 finished = END;
                 strike = 0;
                 player->score++;

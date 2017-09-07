@@ -210,22 +210,22 @@ int is_winner(int location, uc* grid)
 {
     if (check_horizontal(location, grid) >= WIN_VAL)
     {
-        //  printf ("Winner horizontal : location : %d", location);
+         printf ("Winner horizontal : location : %d \n", location);
         return 1;
     }
     else if (check_vertical(location, grid) >= WIN_VAL)
     {
-        //    printf ("Winner horizontal : location : %d", location);
+            printf ("Winner vertical : location : %d \n", location);
         return 1;
     }
     else if (check_rdiagonal(location, grid) >= WIN_VAL)
     {
-        //    printf ("Winner horizontal : location : %d", location);
+            printf ("Winner rdiagonal : location : %d", location);
         return 1;
     }
     else if (check_ldiagonal(location, grid) >= WIN_VAL)
     {
-        //    printf ("Winner horizontal : location : %d", location);
+            printf ("Winner ldiagonal : location : %d \n", location);
         return 1;
     }
     else
@@ -241,7 +241,7 @@ int check_column(int column)
 }
 
 
-int check_horizontal(int pos, uc* grid)
+int check_vertical(int pos, uc* grid)
 {
     int cursor = pos;
     uc token = grid[pos];
@@ -271,14 +271,18 @@ int check_horizontal(int pos, uc* grid)
     return counter;
 }
 
-int check_vertical(int pos, uc* grid)
+int check_horizontal(int pos, uc* grid)
 {
     int cursor = pos;
     uc token = grid[pos];
     int counter = 1;
     bool find = true;
+    int low_limit = ((pos / w) * w);
+    low_limit = low_limit < 0 ? 0 : low_limit;
+    int hight_limit = ((pos / w) + 1) * w;
+    hight_limit = hight_limit > MAX_SIZE ? MAX_SIZE : hight_limit;
     /*start by checking the right side*/
-    while (cursor < MAX_SIZE && find)
+    while (cursor < hight_limit && find)
     {
         cursor += ONE;
         if (grid[cursor] == token)
@@ -289,7 +293,7 @@ int check_vertical(int pos, uc* grid)
     /* check the left side */
     cursor = pos;
     find = true;
-    while (cursor >= 0 && find)
+    while (cursor >= low_limit && find)
     {
         cursor -= ONE;
         if (grid[cursor] == token)
@@ -307,7 +311,7 @@ int check_rdiagonal(int pos, uc* grid)
     int counter = ONE;
     bool find = true;
     /*start by checking the right side*/
-    while (cursor < MAX_SIZE && find)
+    while ((cursor + 1 % w) && cursor < MAX_SIZE  && find)
     {
         cursor += (w + 1);
         if (grid[cursor] == token)
@@ -318,7 +322,7 @@ int check_rdiagonal(int pos, uc* grid)
     /* check the left side */
     cursor = pos;
     find = true;
-    while (cursor >= 0 && find)
+    while ((cursor % w)  && cursor >= 0 && find)
     {
         cursor -= (w + 1);
         if (grid[cursor] == token)
@@ -336,7 +340,7 @@ int check_ldiagonal(int pos, uc* grid)
     int counter = 1;
     bool find = true;
     /*start by checking the right side*/
-    while (cursor < MAX_SIZE && find)
+    while ((cursor % w) && cursor < MAX_SIZE && find)
     {
         cursor += (w - 1);
         if (grid[cursor] == token)
@@ -347,7 +351,7 @@ int check_ldiagonal(int pos, uc* grid)
     /* check the left side */
     cursor = pos;
     find = true;
-    while (cursor >= 0 && find)
+    while (((cursor + 1) % w) && cursor >= 0 && find)
     {
         cursor -= (w - 1);
         if (grid[cursor] == token)
