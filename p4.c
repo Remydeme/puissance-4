@@ -35,6 +35,31 @@ void handle_signal()
         sigaction (SIGHUP, &new_action, NULL);
 }
 
+bool restore_game()
+{
+    FILE * file = fopen(SAVED_FILE, "r");
+    if (file)
+    {
+        char garbage = ' ';
+        for (int i = 0; i < NB_PLAYER_MAX; i++)
+            fscanf(file, "%s %d %d %c", players[i].name, &players[i].tokens, &players[i].score, &garbage);
+        fscanf(file, "%d %d %c", &h, &w, &garbage);
+        int car = ' ';
+        int i = 0;
+        while (((car = fgetc(file)) != EOF) && i < MAX_SIZE)
+        {
+            grid[i] = car;
+            i++;
+        }
+        return true;
+    }
+    else
+    {
+        fprintf (stderr, "No saved file found \n");
+        return false;
+    }
+}
+
 void save_game(int signum)
 {
     if (SIGINT == signum)
@@ -185,22 +210,22 @@ int is_winner(int location, uc* grid)
 {
     if (check_horizontal(location, grid) >= WIN_VAL)
     {
-      //  printf ("Winner horizontal : location : %d", location);
+        //  printf ("Winner horizontal : location : %d", location);
         return 1;
     }
     else if (check_vertical(location, grid) >= WIN_VAL)
     {
-    //    printf ("Winner horizontal : location : %d", location);
+        //    printf ("Winner horizontal : location : %d", location);
         return 1;
     }
     else if (check_rdiagonal(location, grid) >= WIN_VAL)
     {
-    //    printf ("Winner horizontal : location : %d", location);
+        //    printf ("Winner horizontal : location : %d", location);
         return 1;
     }
     else if (check_ldiagonal(location, grid) >= WIN_VAL)
     {
-    //    printf ("Winner horizontal : location : %d", location);
+        //    printf ("Winner horizontal : location : %d", location);
         return 1;
     }
     else
@@ -391,38 +416,40 @@ int is_filled(uc* grid, int column)
 /////////////////// TREE ///////////////////////////
 
 /*
-struct node_s*  init_tree(uc* grid)
-{
-    struct node_s* new_node = calloc (1, sizeof (struct node_s));
-    new_node->grid = grid;
-    return new_node;
-}
+   struct node_s*  init_tree(uc* grid)
+   {
+   struct node_s* new_node = calloc (1, sizeof (struct node_s));
+   new_node->grid = grid;
+   return new_node;
+   }
 
-struct node_s* insert_child(struct node_s* root, int rank, uc token, int player)
-{
-    root->children[rank] = new_node();
-    if (root->children[rank])
-    {
-        // create a function for the grid 
-        int position = insert(root->grid, rank, token); 
-        root->children[rank]->grid = 
-        if (player == IA)
-            root->children[rank]->
-    //    root->children[rank]->weight = 
-    }
+   struct node_s* insert_child(struct node_s* root, int rank, uc token, int player)
+   {
+   root->children[rank] = new_node();
+   if (root->children[rank])
+   {
+// create a function for the grid 
+int position = insert(root->grid, rank, token); 
+root->children[rank]->grid = 
+if (player == IA)
+root->children[rank]->
+//    root->children[rank]->weight = 
 }
-*/
+}
+ */
 
 
 /////////////////// GAME ///////////////////////////
 
 
-uc* p4_game()
+uc* p4_game(int flag)
 {
     int finished = START;
     int whom = 0;
     struct player_s* player = NULL;
     grid = create_tab(w, h);
+    if (flag == RESTORE_MODE)
+        restore_game();
     if (grid)
     {
         while (!finished)

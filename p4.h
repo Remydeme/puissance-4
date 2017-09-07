@@ -23,6 +23,8 @@
 #define BARRE "_____________________"
 
 ///////////// VAR 
+#define NORMAL 1
+#define RESTORE_MODE 2
 
 #define IA_NAME "JARVIS"
 
@@ -134,6 +136,9 @@ int heuristique(uc* grid, uc token, int location, int size_x);
 
 int alignement(uc * grid, int location);
 ///////////// The game ///////////
+
+
+/** */
 
 /**   \brief display the code */
 

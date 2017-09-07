@@ -23,7 +23,7 @@ void p4_IA_3(uc* grid, int size_x, int size_y, uc token)
     int rv_min = 0;
     int profondeur = DEFAULT_DEPHT;
     int rank = 0;
-    int prec_strike = 0;
+    static int prec_strike;
     switch (strike)
     {
         case START:
@@ -35,10 +35,11 @@ void p4_IA_3(uc* grid, int size_x, int size_y, uc token)
             insert_pos = prec_strike;
           break;
        case SECOND_STRIKE :
-                if (!is_taken(grid, prec_strike + 7))
-                    insert(grid, prec_strike + 7, token);
+                printf ("precedent strike : %d", prec_strike);
+                if (!is_taken(grid, prec_strike + w))
+                    insert(grid, prec_strike + w, token);
                 else
-                    insert(grid, prec_strike + 1, token);
+                    insert(grid, prec_strike + ONE, token);
              break;
         default :
             {
@@ -210,6 +211,9 @@ uc* IA_mode_p4_game()
                 finished = END;
                 strike = 0;
                 player->score++;
+                // retore the player tokens nb // 
+                players[0].tokens = MAX_SIZE / 2;
+                players[1].tokens = MAX_SIZE / 2;
                 display(grid);
                 continue;
             }

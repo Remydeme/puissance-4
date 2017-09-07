@@ -16,10 +16,10 @@ int main()
     do
     {
         printf ( "1 - 1 VS 1 \n");
-        printf ( "2 - 1 VS JARVIS \n" );
-        printf ( "3 - RULES \n");
+        printf ( "2 - 1 VS JARVIS \n");
+        printf ( "3 - RESTORE GAME \n"); 
+        printf ( "4 - RULES \n");
         printf ("4 - EXIT \n\n");
-
         puts ("What do you want to do ? \n\n");
         scanf ("%d", &choice);
         system("clear");
@@ -29,7 +29,7 @@ int main()
         {
             case VS_1:
                 config_player(VS_1);
-                p4_game();
+                p4_game(NORMAL);
                 break;
 
             case VS_IA:
@@ -38,8 +38,7 @@ int main()
                 break;
 
             case RULES:
-                puts ("SOONER");
-                system( "./p4.sh");
+                p4_game(RESTORE_MODE);
                 break;
 
             default :
