@@ -16,7 +16,9 @@
 
 #define VS_1 1
 #define VS_IA 2
-#define RULES 3
+#define RULES 4
+#define RESTORE_MODE 3
+#define BUILD_MODE 5
 
 //////////// GAME 
 
@@ -25,7 +27,6 @@
 
 ///////////// VAR 
 #define NORMAL 1
-#define RESTORE_MODE 2
 
 #define IA_NAME "JARVIS"
 
@@ -42,8 +43,8 @@
 #define END 1
 #define START 0
 
-#define P1_JETON 'X'
-#define P2_JETON 'O'
+#define P1_TOKEN 'X'
+#define P2_TOKEN 'O'
 #define EMPTY_CASE ' '
 
 // players jeton amount 
@@ -67,7 +68,11 @@
 #define START 0
 #define SECOND_STRIKE 1
 
+// LEVEL
 
+#define AMATEUR 4
+#define MASTER 8
+#define CHAMPION 10 
 
 // error message 
 
@@ -116,20 +121,22 @@ struct game_s
 
 uc* IA_mode_p4_game();
 
-struct player_s* IA_turn(int whom);
-
 /** Ia turn function */
+struct player_s* IA_turn(int whom, int level);
 
-struct player_s* IA_turn(int whom);
+
 
 /** \brief This function is an implementation of the Min Max algorithm */
 
 void p4_IA_3(uc *grid, int size_x, int size_y, uc token);
 
 /** \brief MinMax Min function */
+int min(uc* grid, int profondeur, int location, int size_x, int size_y, uc token);
 
+int insert(uc* grid, int column, uc token);
 /** \brief MinMax Max function */
 
+int max(uc* grid, int profondeur, int location, int size_x, int size_y, uc token);
 
 /** Evaluation function */
 
