@@ -178,15 +178,7 @@ struct player_s* turn(int whom)
 
 // read function with the fgets here 
 
-void check_party_null(int whom, int *finished)
-{
-    if (whom == MAX_SIZE)
-    {
-        fprintf (stdout, "msg : %s \n", MATCH_NULL);
-        *finished = END;
-    }
 
-}
 
 void display(uc* grid)
 {
@@ -206,162 +198,6 @@ void display(uc* grid)
     }
 }
 
-int is_winner(int location, uc* grid)
-{
-    if (check_horizontal(location, grid) >= WIN_VAL)
-    {
-         printf ("Winner horizontal : location : %d \n", location);
-        return 1;
-    }
-    else if (check_vertical(location, grid) >= WIN_VAL)
-    {
-            printf ("Winner vertical : location : %d \n", location);
-        return 1;
-    }
-    else if (check_rdiagonal(location, grid) >= WIN_VAL)
-    {
-            printf ("Winner rdiagonal : location : %d", location);
-        return 1;
-    }
-    else if (check_ldiagonal(location, grid) >= WIN_VAL)
-    {
-            printf ("Winner ldiagonal : location : %d \n", location);
-        return 1;
-    }
-    else
-        return 0;
-}
-
-
-
-
-int check_column(int column)
-{
-    return column >= 1 && w >= column ? 1 : 0;
-}
-
-
-int check_vertical(int pos, uc* grid)
-{
-    int cursor = pos;
-    uc token = grid[pos];
-    int counter = 1;
-    bool find = true;
-    /*start by checking the right side*/
-    while (cursor < MAX_SIZE && find)
-    {
-        cursor += w;
-        if (grid[cursor] == token)
-            counter++;
-        else
-            find = false;
-    }
-
-    cursor = pos;
-    find = true;
-    /* check the left side */
-    while (cursor >= 0 && find)
-    {
-        cursor -= w;
-        if (grid[cursor] == token)
-            counter++;
-        else
-            find = false;
-    }
-    return counter;
-}
-
-int check_horizontal(int pos, uc* grid)
-{
-    int cursor = pos;
-    uc token = grid[pos];
-    int counter = 1;
-    bool find = true;
-    int low_limit = ((pos / w) * w);
-    low_limit = low_limit < 0 ? 0 : low_limit;
-    int hight_limit = ((pos / w) + 1) * w;
-    hight_limit = hight_limit > MAX_SIZE ? MAX_SIZE : hight_limit;
-    /*start by checking the right side*/
-    while (cursor < hight_limit && find)
-    {
-        cursor += ONE;
-        if (grid[cursor] == token)
-            counter++;
-        else
-            find = false;
-    }
-    /* check the left side */
-    cursor = pos;
-    find = true;
-    while (cursor >= low_limit && find)
-    {
-        cursor -= ONE;
-        if (grid[cursor] == token)
-            counter++;
-        else
-            find = false;
-    }
-    return counter;
-}
-
-int check_rdiagonal(int pos, uc* grid)
-{
-    int cursor = pos;
-    uc token = grid[pos];
-    int counter = ONE;
-    bool find = true;
-    /*start by checking the right side*/
-    while ((cursor + 1 % w) && cursor < MAX_SIZE  && find)
-    {
-        cursor += (w + 1);
-        if (grid[cursor] == token)
-            counter++;
-        else
-            find = false;
-    }
-    /* check the left side */
-    cursor = pos;
-    find = true;
-    while ((cursor % w)  && cursor >= 0 && find)
-    {
-        cursor -= (w + 1);
-        if (grid[cursor] == token)
-            counter++;
-        else
-            find = false;
-    }
-    return counter;
-}
-
-int check_ldiagonal(int pos, uc* grid)
-{
-    int cursor = pos;
-    uc token = grid[pos];
-    int counter = 1;
-    bool find = true;
-    /*start by checking the right side*/
-    while ((cursor % w) && cursor < MAX_SIZE && find)
-    {
-        cursor += (w - 1);
-        if (grid[cursor] == token)
-            counter++;
-        else
-            find = false;
-    }
-    /* check the left side */
-    cursor = pos;
-    find = true;
-    while (((cursor + 1) % w) && cursor >= 0 && find)
-    {
-        cursor -= (w - 1);
-        if (grid[cursor] == token)
-            counter++;
-        else
-            find = false;
-    }
-    return counter;
-}
-
 
 //////////////////////////////////// grid //////////////////////////////
 
@@ -369,14 +205,14 @@ int check_ldiagonal(int pos, uc* grid)
 /*
    | 0 | 1 | 2 | 3 | 4 | 5 | 6 |
    _ ___________________________
-   | 0 | 1 | 2 | 3 | 4 | 5 | 6 |
+   | 0 | 1 | 0 | 3 | 4 | 5 | 6 |
    _ ___________________________
-   | 0 | 1 | 2 | 3 | 4 | 5 | 6 |
+   | 0 | 1 | X | 3 | 4 | 5 | 6 |
    _ ___________________________
-   | 0 | 1 | 2 | 3 | 4 | 5 | 6 |
+   | 0 | 1 | X | 3 | 4 | 5 | 6 |
    _ ___________________________
 
-   | 0 | 1 | 2 | 3 | 4 | 5 | 6 |
+   | 0 | O | X | 3 | 4 | 5 | 6 |
    _ ____________________________ 
  */
 
@@ -387,20 +223,7 @@ int is_empty(uc case_value)
     return case_value == EMPTY_CASE;
 }
 
-int insert(uc* grid, int column, uc token)
-{
-    int position = column - 1;
-    for (int i = 0 ; (i < h && position < MAX_SIZE) ; i++)
-    {
-        if (is_empty(grid[position]))
-        {
-            grid[position] = token;
-            break;
-        }
-        position += w;
-    }
-    return position;
-}
+
 
 
 uc* create_tab(int w, int h)
@@ -412,10 +235,7 @@ uc* create_tab(int w, int h)
 }
 
 
-int is_filled(uc* grid, int column)
-{
-    return grid[(h - 1) * w  +  column - 1] != EMPTY_CASE;
-}
+
 
 /////////////////// TREE ///////////////////////////
 
@@ -465,6 +285,8 @@ uc* p4_game(int flag)
                 finished = END;
                 player->score++;
                 display(grid);
+                printf ( "%s wins ! ", player->name);
+                system("./win.sh");
                 break;
             }
             whom++;

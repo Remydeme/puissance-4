@@ -61,7 +61,7 @@
 #define DEFAULT_MAX_V -1000
 #define DEFAULT_MIN_V 1000
 
-#define DEFAULT_DEPHT 6
+#define DEFAULT_DEPHT 8
 
 #define START 0
 #define SECOND_STRIKE 1

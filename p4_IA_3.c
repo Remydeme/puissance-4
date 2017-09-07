@@ -28,17 +28,20 @@ void p4_IA_3(uc* grid, int size_x, int size_y, uc token)
     {
         case START:
             if (!is_taken(grid, size_x / 2))
-                prec_strike = insert(grid, size_x / 2, token);
+                prec_strike = insert(grid, size_x / 2, token) + 1;
             else
-                prec_strike = insert(grid, size_x / 2 + 1, token);
+                prec_strike = insert(grid, size_x / 2 + 1, token) + 1;
             /*get the value in oder to realise the verification*/
-            insert_pos = prec_strike;
+            insert_pos = prec_strike - 1;
           break;
-     /*  case SECOND_STRIKE :
-                printf ("precedent strike : %d", prec_strike);
+      case SECOND_STRIKE :
                 if (!is_taken(grid, prec_strike + w))
-                    insert(grid, prec_strike + w, token);
-           break;*/
+                    prec_strike = insert(grid, prec_strike + w, token);
+                else if (!is_taken(grid, prec_strike + ONE))
+                    prec_strike = insert(grid, prec_strike + ONE, token);
+                else
+                    prec_strike = insert(grid, prec_strike - ONE, token);
+           break;
         default :
             {
                 for (int i = 1; i <= size_x; i++)
@@ -47,8 +50,6 @@ void p4_IA_3(uc* grid, int size_x, int size_y, uc token)
                     {
                         int location = insert(grid, i, token);
                         rv_min = min(grid, profondeur - 1, location, size_x, token);
-
-                        printf ("|  min : %d max : %d rank : %d |\n\n", rv_min, max, i);
                         if (rv_min > max)
                         {
                             max = rv_min;
@@ -193,7 +194,7 @@ uc* IA_mode_p4_game()
             player = IA_turn(whom);
             if (is_winner(insert_pos, grid))
             {
-                printf ( "%s Wins", player->name);
+                printf ( "%s Wins \n", player->name);
                 finished = END;
                 strike = 0;
                 player->score++;
@@ -213,4 +214,191 @@ uc* IA_mode_p4_game()
     return grid;
 }
 
+int is_winner(int location, uc* grid)
+{
+    if (check_horizontal(location, grid) >= WIN_VAL)
+    {
+       // printf ("horizontal : %d ", location);
+        return 1;
+    }
+    else if (check_vertical(location, grid) >= WIN_VAL)
+    {
+       // printf ("vertical : %d ", location);
+        return 1;
+    }
+    else if (check_rdiagonal(location, grid) >= WIN_VAL)
+    {
+      //  printf ("r diagonal %d ", location);
+        return 1;
+    }
+    else if (check_ldiagonal(location, grid) >= WIN_VAL)
+    {
+       // printf ("l diagonal %d ", location);
+        return 1;
+    }
+    else
+        return 0;
+}
 
+
+
+
+int check_column(int column)
+{
+    return column >= 1 && w >= column ? 1 : 0;
+}
+
+
+int check_vertical(int pos, uc* grid)
+{
+    int cursor = pos;
+    uc token = grid[pos];
+    int counter = 1;
+    bool find = true;
+    /*start by checking the right side*/
+    while (cursor < MAX_SIZE && find)
+    {
+        cursor += w;
+        if (grid[cursor] == token)
+            counter++;
+        else
+            find = false;
+    }
+
+    cursor = pos;
+    find = true;
+    /* check the left side */
+    while (cursor >= 0 && find)
+    {
+        cursor -= w;
+        if (grid[cursor] == token)
+            counter++;
+        else
+            find = false;
+    }
+    return counter;
+}
+
+int check_horizontal(int pos, uc* grid)
+{
+    int cursor = pos + ONE;
+    uc token = grid[pos];
+    int counter = 1;
+    bool find = true;
+    int low_limit = ((pos / w) * w);
+    low_limit = low_limit < 0 ? 0 : low_limit;
+    int hight_limit = ((pos / w) + 1) * w;
+    hight_limit = hight_limit > MAX_SIZE ? MAX_SIZE : hight_limit;
+    /*start by checking the right side*/
+    while (cursor < hight_limit && find)
+    {
+        if (grid[cursor] == token)
+            counter++;
+        else
+            find = false;
+        cursor += ONE;
+    }
+    /* check the left side */
+    cursor = pos - ONE;
+    find = true;
+    while (cursor >= low_limit && find)
+    {
+        if (grid[cursor] == token)
+            counter++;
+        else
+            find = false;
+        cursor -= ONE;
+    }
+    return counter;
+}
+
+int check_rdiagonal(int pos, uc* grid)
+{
+    int cursor = pos;
+    uc token = grid[pos];
+    int counter = ONE;
+    bool find = true;
+    /*start by checking the right side*/
+    while (((cursor + 1) % w) && cursor < MAX_SIZE  && find)
+    {
+        cursor += (w + 1);
+        if (grid[cursor] == token)
+            counter++;
+        else
+            find = false;
+    }
+    /* check the left side */
+    cursor = pos;
+    find = true;
+    while ((cursor % w)  && cursor >= 0 && find)
+    {
+        cursor -= (w + 1);
+        if (grid[cursor] == token)
+            counter++;
+        else
+            find = false;
+        //printf (" cursor : %d nb : %d  \n", cursor, counter);
+    }
+    return counter;
+}
+
+int check_ldiagonal(int pos, uc* grid)
+{
+    int cursor = pos;
+    uc token = grid[pos];
+    int counter = 1;
+    bool find = true;
+    /*start by checking the right side*/
+    while ((cursor % w) && cursor < MAX_SIZE && find)
+    {
+        cursor += (w - 1);
+        if (grid[cursor] == token)
+            counter++;
+        else
+            find = false;
+    }
+    /* check the left side */
+    cursor = pos;
+    find = true;
+    while (((cursor + 1) % w) && cursor >= 0 && find)
+    {
+        cursor -= (w - 1);
+        if (grid[cursor] == token)
+            counter++;
+        else
+            find = false;
+    }
+    return counter;
+}
+
+void check_party_null(int whom, int *finished)
+{
+    if (whom == MAX_SIZE)
+    {
+        fprintf (stdout, "msg : %s \n", MATCH_NULL);
+        *finished = END;
+    }
+
+}
+
+int insert(uc* grid, int column, uc token)
+{
+    int position = column - 1;
+    for (int i = 0 ; (i < h && position < MAX_SIZE) ; i++)
+    {
+        if (is_empty(grid[position]))
+        {
+            grid[position] = token;
+            break;
+        }
+        position += w;
+    }
+    return position;
+}
+
+
+
+int is_filled(uc* grid, int column)
+{
+    return grid[(h - 1) * w  +  column - 1] != EMPTY_CASE;
+}
