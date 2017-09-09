@@ -1,15 +1,4 @@
-#### README 
+# Puissance 4 game
 
--> insertion 
-
-return the position where the token has been put 
-// ** info ***// the return value will be use by the check function
-
-
--> check function 
-
-# alone => 0
-# bloc => 1
-# align => 1
-
-![Alt text](https://github.com/Remydeme/puissance-4/blob/master/game-pic.png?raw=true "game pic")
+## Algorithme for use for implement IA:
+ ### ->MinMAx algorithme
