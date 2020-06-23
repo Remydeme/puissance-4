@@ -6,24 +6,19 @@ play TicTacToe game again an AI. the AI have four levels.
 
 ## Installation
 
-
+```bash
+git clone https://github.com/Remydeme/puissance-4/ 
+```
 
 
 ## Usage
 
-You need to first set the config.ENV.json file in the config directory 
-```c
 
-
-```
-
-
-Next you just have to start the service with the Makefile 
 ```bash
 make run 
 ```
 
-This command will create a go.mod file and install all the dependencies. Then it will start the server on the Port. 
+This command will run the game.  
 
 ## Contributing
 Pull requests are welcome. For major changes, please open an issue first to discuss what you would like to change.
